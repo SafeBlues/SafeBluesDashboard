@@ -1,8 +1,17 @@
+using Dates
+
 using ArgParse
+using CSV
 using Dash
 using DashHtmlComponents
 using DashCoreComponents
+using DataFrames
 using HTTP
+
+
+cd(@__DIR__) do
+    include("data.jl")
+end
 
 
 function parse_command()
@@ -34,6 +43,7 @@ end
 
 function main()
     args = parse_command()
+    data = SafeBluesData(args[:data])
 
     app = dash()
     app.layout = html_div()
