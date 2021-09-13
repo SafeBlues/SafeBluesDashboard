@@ -7,10 +7,12 @@ using DashHtmlComponents
 using DashCoreComponents
 using DataFrames
 using HTTP
+using PlotlyJS
 
 
 cd(@__DIR__) do
     include("data.jl")
+    include("plots.jl")
 end
 
 
