@@ -10,10 +10,7 @@ using HTTP
 using PlotlyJS
 
 
-cd(@__DIR__) do
-    include("data.jl")
-    include("plots.jl")
-end
+include("data.jl")
 
 
 function parse_command()
