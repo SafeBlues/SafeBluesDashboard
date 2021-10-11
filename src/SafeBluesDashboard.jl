@@ -5,6 +5,7 @@ using CSV
 using Dash
 using DashHtmlComponents
 using DashCoreComponents
+using DashBootstrapComponents
 using DataFrames
 using HTTP
 using PlotlyJS
@@ -42,9 +43,9 @@ end
 
 function main()
     args = parse_command()
-    data = SafeBluesData(args[:data])
+    data = load_sbdata(args[:data])
 
-    app = dash()
+    app = dash(external_stylesheets=[dbc_themes.FLATLY])
     app.layout = html_div()
 
     run_server(app, args[:host], args[:port]; debug=args[:debug])

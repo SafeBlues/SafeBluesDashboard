@@ -9,7 +9,7 @@ end
 
 
 function _load_parameters(path::String)::DataFrame
-    return CSV.File(path; types=(
+    return CSV.File(path; types=[
             Int64,           # strand_id
             String,          # batch
             Symbol,          # model
@@ -26,12 +26,12 @@ function _load_parameters(path::String)::DataFrame
             Maybe{Float64},  # incubation_shape
             Maybe{Float64},  # infection_mean
             Maybe{Float64},  # infection_shape
-    )) |> DataFrame
+    ]) |> DataFrame
 end
 
 
 function _load_strand(path::String)::DataFrame
-    return CSV.File(path; types=(
+    return CSV.File(path; types=[
         Int64,         # strand_id
         DateTime,      # time_nzt
         DateTime,      # time_utc
@@ -40,12 +40,12 @@ function _load_strand(path::String)::DataFrame
         Int64,         # infected
         Maybe{Int64},  # recovered
         Float64,       # distance_factor
-    )) |> DataFrame
+    ]) |> DataFrame
 end
 
 
 function _load_participants(path::String)::DataFrame
-    return CSV.File(path; types=(
+    return CSV.File(path; types=[
         DateTime,        # time_utc
         DateTime,        # time_nzt
         Int64,           # count_campus
@@ -57,11 +57,11 @@ function _load_participants(path::String)::DataFrame
         Maybe{Float64},  # hours_q2
         Maybe{Float64},  # hours_q3
         Maybe{Float64},  # hours_max
-    )) |> DataFrame
+    ]) |> DataFrame
 end
 
 
-function SafeBluesData(dir::String)::SafeBluesData
+function load_sbdata(dir::String)::SafeBluesData
     parameters::DataFrame = _load_parameters(joinpath(dir, "data", "strands.csv"))
 
     strands_hourly::Vector{DataFrame} = [
