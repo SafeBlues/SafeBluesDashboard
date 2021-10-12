@@ -11,7 +11,10 @@ using HTTP
 using PlotlyJS
 
 
-include("data.jl")
+include("core/data.jl")
+
+include("app/util.jl")
+include("app/layout.jl")
 
 
 function parse_command()
@@ -46,7 +49,7 @@ function main()
     data = load_sbdata(args[:data])
 
     app = dash(external_stylesheets=[dbc_themes.FLATLY])
-    app.layout = html_div()
+    app.layout = layout(data)
 
     run_server(app, args[:host], args[:port]; debug=args[:debug])
 end
