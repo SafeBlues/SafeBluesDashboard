@@ -8,9 +8,12 @@ app = dash(external_stylesheets=[dbc_themes.FLATLY])
 function phase_options()
     batches = unique(data.parameters[:, :batch])
     matches = Iterators.filter(!isnothing, match.(r"^(\d+).\d+$", batches))
-    phases = unique(Iterators.map(match -> match.captures[begin], matches))
+    phases = parse.(Int, unique(Iterators.map(match -> match.captures[begin], matches)))
 
-    return [Dict("label" => "Phase $phase", "value" => parse(Int, phase)) for phase in phases]
+    return [
+        Dict("label" => "Phase $phase", "value" => phase)
+        for phase in phases if phase != 0
+    ]
 end
 
 function batch_options(phase::Int)
