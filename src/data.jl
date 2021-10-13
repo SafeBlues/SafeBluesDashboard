@@ -12,7 +12,7 @@ function _load_parameters(path::String)::DataFrame
     return CSV.File(path; types=[
             Int64,           # strand_id
             String,          # batch
-            Symbol,          # model
+            String,          # model
             DateTime,        # start_utc
             DateTime,        # seed_utc
             DateTime,        # stop_utc

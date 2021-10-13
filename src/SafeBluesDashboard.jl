@@ -12,6 +12,7 @@ using PlotlyJS
 
 
 include("data.jl")
+include("plots.jl")
 
 
 function parse_command()

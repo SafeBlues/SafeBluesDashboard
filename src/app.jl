@@ -23,7 +23,7 @@ end
 
 function model_options()
     models = unique(data.parameters[:, :model])
-    return [Dict("label" => model, "value" => Symbol(model)) for model in models]
+    return [Dict("label" => model, "value" => model) for model in models]
 end
 
 
@@ -57,7 +57,7 @@ control_card = dbc_card(body=true) do
 end
 
 graph_card = dbc_card(body=true) do
-    dcc_graph()
+    dcc_graph(id="ensemble-graph")
 end
 
 app.layout = html_div() do
@@ -74,4 +74,12 @@ end
 
 callback!(app, Output("batch-dropdown", "options"), Input("phase-radio", "value")) do phase
     return batch_options(phase)
+end
+
+callback!(
+    app,
+    Output("ensemble-graph", "figure"),
+    Input("model-radio", "value"), Input("batch-dropdown", "value")
+) do model, batch
+    return ensemble_plot(row -> row.model == model && row.batch == batch)
 end
