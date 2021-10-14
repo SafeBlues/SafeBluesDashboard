@@ -2,9 +2,24 @@ const Maybe{T} = Union{T, Missing}
 
 
 struct SafeBluesData
+    batches::DataFrame
     parameters::DataFrame
     strands::NamedTuple{(:hourly, :daily), Tuple{Vector{DataFrame}, Vector{DataFrame}}}
     participants::NamedTuple{(:hourly, :daily), Tuple{DataFrame, DataFrame}}
+end
+
+
+function _load_batches(path::String)::DataFrame
+    return CSV.File(path; types=[
+        Maybe{Int64},     # phase
+        String,           # batch
+        Maybe{DateTime},  # start_utc
+        Maybe{DateTime},  # seed_utc
+        Maybe{DateTime},  # stop_utc
+        Maybe{DateTime},  # start_nzt
+        Maybe{DateTime},  # seed_nzt
+        Maybe{DateTime},  # stop_nzt
+    ]) |> DataFrame
 end
 
 
@@ -62,6 +77,7 @@ end
 
 
 function load_sbdata(dir::String)::SafeBluesData
+    batches::DataFrame = _load_batches(joinpath(dir, "data", "batches.csv"))
     parameters::DataFrame = _load_parameters(joinpath(dir, "data", "strands.csv"))
 
     strands_hourly::Vector{DataFrame} = [
@@ -77,6 +93,7 @@ function load_sbdata(dir::String)::SafeBluesData
     participants_daily::DataFrame = _load_participants(joinpath(dir, "data", "daily", "participants.csv"))
 
     return SafeBluesData(
+        batches,
         parameters,
         (hourly=strands_hourly, daily=strands_daily),
         (hourly=participants_hourly, daily=participants_daily)

@@ -6,22 +6,19 @@ app = dash(external_stylesheets=[dbc_themes.FLATLY])
 # ---------------------------------------------------------------------------------------- #
 
 function phase_options()
-    batches = unique(data.parameters[:, :batch])
-    matches = Iterators.filter(!isnothing, match.(r"^(\d+).\d+$", batches))
-    phases = parse.(Int, unique(Iterators.map(match -> match.captures[begin], matches)))
-
+    phases = unique(data.batches[:, :phase])
     return [
         Dict("label" => "Phase $phase", "value" => phase)
-        for phase in phases if phase != 0
+        for phase in phases if phase != 0 && phase !== missing
     ]
 end
 
 function batch_options(phase::Int)
-    batches = unique(data.parameters[:, :batch])
-    regex = Regex("^$(phase).\\d+\$")
-    batches = Iterators.filter(batch -> occursin(regex, batch), batches)
-
-    return [Dict("label" => batch, "value" => batch) for batch in batches]
+    format = "dd/mm/yy"
+    return [Dict(
+        "label" => "$(row.batch) ($(Dates.format(row.start_nzt, format)) - $(Dates.format(row.stop_nzt, format)))",
+        "value" => row.batch
+    ) for row in eachrow(data.batches) if row.phase == phase]
 end
 
 function model_options()
