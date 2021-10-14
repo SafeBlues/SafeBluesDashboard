@@ -21,9 +21,14 @@ function batch_options(phase::Int)
     ) for row in eachrow(data.batches) if row.phase == phase]
 end
 
-function model_options()
-    models = unique(data.parameters[:, :model])
-    return [Dict("label" => model, "value" => model) for model in models]
+function model_options(batch::String)
+    parameters = filter(row -> row.batch == batch, data.parameters)
+
+    enabled(model::String) = any(row.model == model for row in eachrow(parameters))
+    return [
+        Dict("label" => model, "value" => model, "disabled" => !enabled(model))
+        for model in ("SEIR", "SIR", "SEI", "SI")
+    ]
 end
 
 
@@ -32,27 +37,21 @@ end
 # ---------------------------------------------------------------------------------------- #
 
 control_card = dbc_card(body=true) do
-    dbc_formgroup(row=true) do
-        dbc_label("Model", html_for="model-radio", width=2),
-        dbc_col(
-            dbc_radioitems(id="model-radio", inline=true, options=model_options()),
-            width=10
-        )
-    end,
-
     dbc_form() do
         dbc_formgroup(row=true) do
             dbc_label("Phase", html_for="phase-radio", width=2),
-            dbc_col(
-                dbc_radioitems(id="phase-radio", inline=true, options=phase_options()),
-                width=10
-            )
+            dbc_col(dbc_radioitems(id="phase-radio", inline=true), width=10)
         end,
 
         dbc_formgroup(row=true) do
             dbc_label("Batch", html_for="batch-dropdown", width=2),
             dbc_col(dcc_dropdown(id="batch-dropdown"), width=10)
         end
+    end,
+
+    dbc_formgroup(row=true) do
+        dbc_label("Model", html_for="model-radio", width=2),
+        dbc_col(dbc_radioitems(id="model-radio", inline=true), width=10)
     end
 end
 
@@ -64,7 +63,8 @@ app.layout = html_div() do
     dbc_row() do
         dbc_col(control_card, width=4),
         dbc_col(graph_card, width=8)
-    end
+    end,
+    html_div(id="init")
 end
 
 
@@ -74,11 +74,32 @@ end
 
 callback!(
     app,
+    Output("phase-radio", "options"), Output("phase-radio", "value"),
+    Input("init", "id")
+) do _
+    options = phase_options()
+    default = isempty(options) ? nothing : first(options)["value"]
+    return options, default
+end
+
+callback!(
+    app,
     Output("batch-dropdown", "options"), Output("batch-dropdown", "value"),
     Input("phase-radio", "value")
 ) do phase
     options = batch_options(phase)
     default = isempty(options) ? nothing : first(options)["value"]
+    return options, default
+end
+
+callback!(
+    app,
+    Output("model-radio", "options"), Output("model-radio", "value"),
+    Input("batch-dropdown", "value")
+) do batch
+    options = model_options(batch)
+    selectable = filter(option -> !option["disabled"], options)
+    default = isempty(selectable) ? nothing : first(selectable)["value"]
     return options, default
 end
 
