@@ -72,8 +72,14 @@ end
 # Callbacks                                                                                   #
 # ---------------------------------------------------------------------------------------- #
 
-callback!(app, Output("batch-dropdown", "options"), Input("phase-radio", "value")) do phase
-    return batch_options(phase)
+callback!(
+    app,
+    Output("batch-dropdown", "options"), Output("batch-dropdown", "value"),
+    Input("phase-radio", "value")
+) do phase
+    options = batch_options(phase)
+    default = isempty(options) ? nothing : first(options)["value"]
+    return options, default
 end
 
 callback!(
