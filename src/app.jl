@@ -46,12 +46,12 @@ control_card = dbc_card(body=true) do
         dbc_formgroup(row=true) do
             dbc_label("Batch", html_for="batch-dropdown", width=2),
             dbc_col(dcc_dropdown(id="batch-dropdown"), width=10)
-        end
-    end,
+        end,
 
-    dbc_formgroup(row=true) do
-        dbc_label("Model", html_for="model-radio", width=2),
-        dbc_col(dbc_radioitems(id="model-radio", inline=true), width=10)
+        dbc_formgroup(row=true) do
+            dbc_label("Model", html_for="model-radio", width=2),
+            dbc_col(dbc_radioitems(id="model-radio", inline=true), width=10)
+        end
     end
 end
 
@@ -95,11 +95,20 @@ end
 callback!(
     app,
     Output("model-radio", "options"), Output("model-radio", "value"),
-    Input("batch-dropdown", "value")
-) do batch
+    Input("batch-dropdown", "value"),
+    State("model-radio", "value")
+) do batch, previous
     options = model_options(batch)
     selectable = filter(option -> !option["disabled"], options)
-    default = isempty(selectable) ? nothing : first(selectable)["value"]
+
+    if isempty(selectable)
+        default = nothing
+    elseif previous in get.(selectable, "value", nothing)
+        default = previous
+    else
+        default = first(selectable)["value"]
+    end
+
     return options, default
 end
 
