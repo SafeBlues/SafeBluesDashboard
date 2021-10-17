@@ -64,12 +64,14 @@ app.layout = html_div() do
         dbc_col(control_card, width=4),
         dbc_col(graph_card, width=8)
     end,
-    html_div(id="init")
+
+    html_div(id="init"),
+    dcc_store(id="ensemble-store", data=Int[])
 end
 
 
 # ---------------------------------------------------------------------------------------- #
-# Callbacks                                                                                   #
+# Callbacks                                                                                #
 # ---------------------------------------------------------------------------------------- #
 
 callback!(
@@ -114,8 +116,17 @@ end
 
 callback!(
     app,
-    Output("ensemble-graph", "figure"),
+    Output("ensemble-store", "data"),
     Input("model-radio", "value"), Input("batch-dropdown", "value")
 ) do model, batch
-    return ensemble_plot(row -> row.model == model && row.batch == batch)
+    use(row) = row.model == model && row.batch == batch
+    return Int[row.strand_id for row in eachrow(data.parameters) if use(row)]
+end
+
+callback!(
+    app,
+    Output("ensemble-graph", "figure"),
+    Input("ensemble-store", "data")
+) do strand_ids
+    return ensemble_plot(Vector{Int}(strand_ids))
 end

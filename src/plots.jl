@@ -6,14 +6,14 @@ const GREEN = "#18BC9C"
 const OPACITY = 0.25
 
 
-function ensemble_plot(selector)
+function ensemble_plot(strand_ids::Vector{T}) where T <: Integer
     traces = GenericTrace[]
-    for row in Iterators.filter(selector, eachrow(data.parameters))
+    for strand_id in strand_ids
         push!(traces, scatter(;
-            x=data.strands.hourly[row.strand_id][:, :time_nzt],
-            y=data.strands.hourly[row.strand_id][:, :infected],
+            x=data.strands.hourly[strand_id][:, :time_nzt],
+            y=data.strands.hourly[strand_id][:, :infected],
             line_color=RED,
-            name="Strand $(row.strand_id)",
+            name="Strand $(strand_id)",
             opacity=OPACITY,
             showlegend=false
         ))
