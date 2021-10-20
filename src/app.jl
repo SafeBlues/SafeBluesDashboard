@@ -39,34 +39,42 @@ end
 control_card = dbc_card(body=true) do
     dbc_form() do
         dbc_formgroup(row=true) do
-            dbc_label("Phase", html_for="phase-radio", width=2),
-            dbc_col(dbc_radioitems(id="phase-radio", inline=true), width=10)
+            dbc_label("Phase"; html_for="phase-radio", width=2),
+            dbc_col(dbc_radioitems(;id="phase-radio", inline=true); width=10)
         end,
 
         dbc_formgroup(row=true) do
-            dbc_label("Batch", html_for="batch-dropdown", width=2),
-            dbc_col(dcc_dropdown(id="batch-dropdown"), width=10)
+            dbc_label("Batch"; html_for="batch-dropdown", width=2),
+            dbc_col(dcc_dropdown(;id="batch-dropdown"); width=10)
         end,
 
         dbc_formgroup(row=true) do
-            dbc_label("Model", html_for="model-radio", width=2),
-            dbc_col(dbc_radioitems(id="model-radio", inline=true), width=10)
+            dbc_label("Model"; html_for="model-radio", width=2),
+            dbc_col(dbc_radioitems(;id="model-radio", inline=true); width=10)
         end
     end
 end
 
-graph_card = dbc_card(body=true) do
-    dcc_graph(id="ensemble-graph")
+ensemble_graph_card = dbc_card(;body=true) do
+    dcc_graph(;id="ensemble-graph")
+end
+
+trajectory_graph_card = dbc_card(;body=true) do
+    dcc_graph(;id="trajectory-graph")
 end
 
 app.layout = html_div() do
     dbc_row() do
-        dbc_col(control_card, width=4),
-        dbc_col(graph_card, width=8)
+        dbc_col(control_card; width=4),
+        dbc_col(ensemble_graph_card; width=8)
     end,
 
-    html_div(id="init"),
-    dcc_store(id="ensemble-store", data=Int[])
+    dbc_row() do
+        dbc_col(trajectory_graph_card; width=5)
+    end,
+
+    html_div(;id="init"),
+    dcc_store(;id="ensemble-store", data=Int[])
 end
 
 
@@ -129,4 +137,24 @@ callback!(
     Input("ensemble-store", "data")
 ) do strand_ids
     return ensemble_plot(Vector{Int}(strand_ids))
+end
+
+callback!(
+    app,
+    Output("trajectory-graph", "figure"),
+    Input("ensemble-graph", "hoverData"), Input("ensemble-store", "data")
+) do hover_data, strand_ids
+    if length(strand_ids) == 0
+        throw(PreventUpdate())
+    end
+
+    if isnothing(hover_data)
+        strand_id = rand(strand_ids)
+
+    else
+        point, = hover_data.points
+        strand_id = strand_ids[mod1(point.curveNumber + 1, length(strand_ids))]
+    end
+
+    return trajectory_plot(strand_id)
 end
