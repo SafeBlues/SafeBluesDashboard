@@ -38,6 +38,7 @@ function trajectory_plot(strand_id::Integer)
     susceptible = data.strands.hourly[strand_id][:, :susceptible]
     push!(traces, scatter(;x=times, y=susceptible, line_color=BLUE, name="Susceptible"))
 
+    # Exposed Trace
     if model == "SEI" || model == "SEIR"
         exposed = data.strands.hourly[strand_id][:, :exposed]
         push!(traces, scatter(;x=times, y=exposed, line_color=ORANGE, name="Exposed"))
@@ -55,6 +56,31 @@ function trajectory_plot(strand_id::Integer)
 
     layout = Layout(;
         title="Strand $(strand_id) Trajectory",
+        xaxis_title="Time (NZST/NZDT)",
+        yaxis_title="Participants"
+    )
+
+    return plot(traces, layout)
+end
+
+function participants_plot()
+    times = data.participants.hourly[:, :time_nzt]
+    traces = GenericTrace[]
+
+    # Registered Participants
+    registered = data.participants.hourly[:, :count_registered]
+    push!(traces, scatter(;x=times, y=registered, line_color=BLUE, name="Registered"))
+
+    # Reporting Participants
+    reporting = data.participants.hourly[:, :count_reporting]
+    push!(traces, scatter(;x=times, y=reporting, line_color=ORANGE, name="Reporting"))
+
+    # Attending Participants
+    campus = data.participants.hourly[:, :count_campus]
+    push!(traces, scatter(;x=times, y=campus, line_color=GREEN, name="Attending"))
+
+    layout = Layout(;
+        title="Participant Engagement",
         xaxis_title="Time (NZST/NZDT)",
         yaxis_title="Participants"
     )
