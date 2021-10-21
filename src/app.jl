@@ -51,7 +51,9 @@ control_card = dbc_card(body=true) do
         dbc_formgroup(row=true) do
             dbc_label("Model"; html_for="model-radio", width=2),
             dbc_col(dbc_radioitems(;id="model-radio", inline=true); width=10)
-        end
+        end,
+
+        dbc_formtext(;className="text-right", id="strand-count")
     end
 end
 
@@ -137,11 +139,19 @@ end
 
 callback!(
     app,
-    Output("ensemble-store", "data"),
-    Input("model-radio", "value"), Input("batch-dropdown", "value")
-) do model, batch
+    Output("ensemble-store", "data"), Output("strand-count", "children"),
+    Output("strand-count", "color"),
+    Input("model-radio", "value"), Input("batch-dropdown", "value"),
+    State("ensemble-store", "data")
+) do model, batch, previous
     use(row) = row.model == model && row.batch == batch
-    return Int[row.strand_id for row in eachrow(data.parameters) if use(row)]
+    strand_ids = Int[row.strand_id for row in eachrow(data.parameters) if use(row)]
+
+    response = "Strands Selected: $(length(strand_ids))"
+    color = length(strand_ids) != 0 ? "info" : "warning"
+    strand_ids = length(strand_ids) != 0 ? strand_ids : previous
+
+    return strand_ids, response, color
 end
 
 callback!(
@@ -157,10 +167,6 @@ callback!(
     Output("trajectory-graph", "figure"),
     Input("ensemble-graph", "hoverData"), Input("ensemble-store", "data")
 ) do hover_data, strand_ids
-    if length(strand_ids) == 0
-        throw(PreventUpdate())
-    end
-
     if isnothing(hover_data)
         strand_id = rand(strand_ids)
 
