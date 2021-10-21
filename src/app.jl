@@ -63,6 +63,10 @@ trajectory_graph_card = dbc_card(;body=true) do
     dcc_graph(;id="trajectory-graph")
 end
 
+participants_graph_card = dbc_card(;body=true) do
+    dcc_graph(;id="participants-graph")
+end
+
 app.layout = html_div() do
     dbc_row() do
         dbc_col(control_card; width=4),
@@ -70,7 +74,8 @@ app.layout = html_div() do
     end,
 
     dbc_row() do
-        dbc_col(trajectory_graph_card; width=5)
+        dbc_col(participants_graph_card; width=6),
+        dbc_col(trajectory_graph_card; width=6)
     end,
 
     html_div(;id="init"),
@@ -90,6 +95,14 @@ callback!(
     options = phase_options()
     default = isempty(options) ? nothing : first(options)["value"]
     return options, default
+end
+
+callback!(
+    app,
+    Output("participants-graph", "figure"),
+    Input("init", "id")
+) do _
+    return participants_plot()
 end
 
 callback!(
