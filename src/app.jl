@@ -37,46 +37,48 @@ end
 # Layout                                                                                   #
 # ---------------------------------------------------------------------------------------- #
 
-control_card = dbc_card(body=true) do
+control_card = dbc_card(;body=true, className="m-2") do
     dbc_form() do
-        dbc_formgroup(row=true) do
+        dbc_row() do
             dbc_label("Phase"; html_for="phase-radio", width=2),
             dbc_col(dbc_radioitems(;id="phase-radio", inline=true); width=10)
         end,
 
-        dbc_formgroup(row=true) do
+        dbc_row() do
             dbc_label("Batch"; html_for="batch-dropdown", width=2),
             dbc_col(dcc_dropdown(;id="batch-dropdown"); width=10)
         end,
 
-        dbc_formgroup(row=true) do
+        dbc_row() do
             dbc_label("Model"; html_for="model-radio", width=2),
             dbc_col(dbc_radioitems(;id="model-radio", inline=true); width=10)
         end,
 
-        dbc_formtext(;className="text-right", id="strand-count")
+        dbc_row() do
+            dbc_formtext(;className="text-end", id="strand-count")
+        end
     end
 end
 
-ensemble_graph_card = dbc_card(;body=true) do
+ensemble_graph_card = dbc_card(;body=true, className="m-2") do
     dcc_graph(;id="ensemble-graph")
 end
 
-trajectory_graph_card = dbc_card(;body=true) do
+trajectory_graph_card = dbc_card(;body=true, className="m-2") do
     dcc_graph(;id="trajectory-graph")
 end
 
-participants_graph_card = dbc_card(;body=true) do
+participants_graph_card = dbc_card(;body=true, className="m-2") do
     dcc_graph(;id="participants-graph")
 end
 
 app.layout = html_div() do
-    dbc_row() do
+    dbc_row(;className="g-0") do
         dbc_col(control_card; width=4),
         dbc_col(ensemble_graph_card; width=8)
     end,
 
-    dbc_row() do
+    dbc_row(;className="g-0") do
         dbc_col(participants_graph_card; width=6),
         dbc_col(trajectory_graph_card; width=6)
     end,
