@@ -8,16 +8,17 @@ app = dash(external_stylesheets=[dbc_themes.FLATLY])
 function phase_options()
     phases = unique(data.batches[:, :phase])
     return [
-        Dict("label" => "Phase $phase", "value" => phase)
+        (label="Phase $phase", value=phase)
         for phase in phases if phase != 0 && phase !== missing
     ]
 end
 
 function batch_options(phase::Int)
     format = "dd/mm/yy"
-    return [Dict(
-        "label" => "$(row.batch) ($(Dates.format(row.start_nzt, format)) - $(Dates.format(row.stop_nzt, format)))",
-        "value" => row.batch
+
+    return [(
+        label="$(row.batch) ($(Dates.format(row.start_nzt, format)) - $(Dates.format(row.stop_nzt, format)))",
+        value=row.batch
     ) for row in eachrow(data.batches) if row.phase == phase]
 end
 
@@ -26,7 +27,7 @@ function model_options(batch::String)
 
     enabled(model::String) = any(row.model == model for row in eachrow(parameters))
     return [
-        Dict("label" => model, "value" => model, "disabled" => !enabled(model))
+        (label=model, value=model, disabled=!enabled(model))
         for model in ("SEIR", "SIR", "SEI", "SI")
     ]
 end
@@ -95,7 +96,7 @@ callback!(
     Input("init", "id")
 ) do _
     options = phase_options()
-    default = isempty(options) ? nothing : first(options)["value"]
+    default = isempty(options) ? nothing : first(options).value
     return options, default
 end
 
@@ -113,7 +114,7 @@ callback!(
     Input("phase-radio", "value")
 ) do phase
     options = batch_options(phase)
-    default = isempty(options) ? nothing : first(options)["value"]
+    default = isempty(options) ? nothing : first(options).value
     return options, default
 end
 
@@ -124,14 +125,14 @@ callback!(
     State("model-radio", "value")
 ) do batch, previous
     options = model_options(batch)
-    selectable = filter(option -> !option["disabled"], options)
+    selectable = filter(option -> !option.disabled, options)
 
     if isempty(selectable)
         default = nothing
-    elseif previous in get.(selectable, "value", nothing)
+    elseif previous in (option.value for option in selectable)
         default = previous
     else
-        default = first(selectable)["value"]
+        default = first(selectable).value
     end
 
     return options, default
