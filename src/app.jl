@@ -14,7 +14,7 @@ function phase_options()
 end
 
 function batch_options(phase::Int)
-    format = "dd/mm/yy"
+    format = "dd/mm/yyyy"
 
     return [(
         label="$(row.batch) ($(Dates.format(row.start_nzt, format)) - $(Dates.format(row.stop_nzt, format)))",
@@ -64,6 +64,50 @@ ensemble_graph_card = dbc_card(;body=true, className="m-2") do
     dcc_graph(;id="ensemble-graph")
 end
 
+function hover_strand_parameters(strand_id::Int)
+    label_width = 5
+    value_width= 7
+    format = "dd/mm/yyyy"
+
+    function make_row(label::String, value::String)
+        return dbc_row() do
+            dbc_col(html_p(label); width=label_width),
+            dbc_col(html_p(value); width=value_width)
+        end
+    end
+
+    row = data.parameters[strand_id, :]
+    strand_id = "$(row.strand_id)"
+    batch = "$(row.batch)"
+    model = "$(row.model)"
+    start_date = Dates.format(row.start_nzt, format)
+    stop_date = Dates.format(row.stop_nzt, format)
+    strength = "$(row.strength)"
+    radius = "$(row.radius)m"
+    incubation_mean = ismissing(row.incubation_mean) ? "-" : string(round(Second(row.incubation_mean), Day))
+    incubation_shape = ismissing(row.incubation_shape) ? "-" :  "$(row.incubation_shape)"
+    infection_mean = ismissing(row.infection_mean) ? "-" : string(round(Second(row.infection_mean), Day))
+    infection_shape = ismissing(row.infection_shape) ? "-" : "$(row.infection_shape)"
+
+    return html_div(;id="hover-strand-parameters") do
+        make_row("Strand ID", strand_id),
+        make_row("Batch", batch),
+        make_row("Model", model),
+        make_row("Start Date", start_date),
+        make_row("Stop Date", stop_date),
+        make_row("Strength", strength),
+        make_row("Radius", radius),
+        make_row("Incubation Mean", incubation_mean),
+        make_row("Incubation Shape", incubation_shape),
+        make_row("Infection Mean", infection_mean),
+        make_row("Infection Shape", infection_shape)
+    end
+end
+
+hover_strand_card = dbc_card(;body=true, className="m-2", id="hover-strand-card") do
+    html_div(;id="hover-strand-parameters")
+end
+
 trajectory_graph_card = dbc_card(;body=true, className="m-2") do
     dcc_graph(;id="trajectory-graph")
 end
@@ -79,12 +123,14 @@ app.layout = html_div() do
     end,
 
     dbc_row(;className="g-0") do
-        dbc_col(participants_graph_card; width=6),
-        dbc_col(trajectory_graph_card; width=6)
+        dbc_col(participants_graph_card; width=5),
+        dbc_col(trajectory_graph_card; width=5),
+        dbc_col(hover_strand_card; width=2)
     end,
 
     html_div(;id="init"),
-    dcc_store(;id="ensemble-store", data=Int[])
+    dcc_store(;id="ensemble-store", data=Int[]),
+    dcc_store(;id="hover-store", data=1)
 end
 
 
@@ -167,7 +213,7 @@ end
 
 callback!(
     app,
-    Output("trajectory-graph", "figure"),
+    Output("hover-store", "data"),
     Input("ensemble-graph", "hoverData"), Input("ensemble-store", "data")
 ) do hover_data, strand_ids
     if isnothing(hover_data)
@@ -178,5 +224,21 @@ callback!(
         strand_id = strand_ids[mod1(point.curveNumber + 1, length(strand_ids))]
     end
 
+    return strand_id
+end
+
+callback!(
+    app,
+    Output("trajectory-graph", "figure"),
+    Input("hover-store", "data")
+) do strand_id
     return trajectory_plot(strand_id)
+end
+
+callback!(
+    app,
+    Output("hover-strand-card", "children"),
+    Input("hover-store", "data")
+) do strand_id
+    return hover_strand_parameters(strand_id)
 end
