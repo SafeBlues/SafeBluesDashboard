@@ -31,6 +31,9 @@ function parse_command()
         "--debug", "-d"
             action = :store_true
             help = "enable dashboard development tools"
+        "--daily"
+            action = :store_true
+            help = "show daily strand and participant statistics"
         "data"
             action = :store_arg
             arg_type = String
@@ -43,7 +46,7 @@ end
 
 
 args = parse_command()
-data = load_sbdata(args[:data])
+data = load_sbdata(args[:data], args[:daily])
 
 include("app.jl")
 

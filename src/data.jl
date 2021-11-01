@@ -4,8 +4,8 @@ const Maybe{T} = Union{T, Missing}
 struct SafeBluesData
     batches::DataFrame
     parameters::DataFrame
-    strands::NamedTuple{(:hourly, :daily), Tuple{Vector{DataFrame}, Vector{DataFrame}}}
-    participants::NamedTuple{(:hourly, :daily), Tuple{DataFrame, DataFrame}}
+    strands::Vector{DataFrame}
+    participants::DataFrame
 end
 
 
@@ -76,26 +76,21 @@ function _load_participants(path::String)::DataFrame
 end
 
 
-function load_sbdata(dir::String)::SafeBluesData
+function load_sbdata(dir::String, daily::Bool)::SafeBluesData
     batches::DataFrame = _load_batches(joinpath(dir, "data", "batches.csv"))
     parameters::DataFrame = _load_parameters(joinpath(dir, "data", "strands.csv"))
 
-    strands_hourly::Vector{DataFrame} = [
-        _load_strand(joinpath(dir, "data", "hourly", "strands", "strand$(r.strand_id).csv"))
-        for r in eachrow(parameters)
+    type = daily ? "daily" : "hourly"
+    strands::Vector{DataFrame} = [
+        _load_strand(joinpath(dir, "data", type, "strands", "strand$(row.strand_id).csv"))
+        for row in eachrow(parameters)
     ]
-    strands_daily::Vector{DataFrame} = [
-        _load_strand(joinpath(dir, "data", "daily", "strands", "strand$(r.strand_id).csv"))
-        for r in eachrow(parameters)
-    ]
-
-    participants_hourly::DataFrame = _load_participants(joinpath(dir, "data", "hourly", "participants.csv"))
-    participants_daily::DataFrame = _load_participants(joinpath(dir, "data", "daily", "participants.csv"))
+    participants::DataFrame = _load_participants(joinpath(dir, "data", type, "participants.csv"))
 
     return SafeBluesData(
         batches,
         parameters,
-        (hourly=strands_hourly, daily=strands_daily),
-        (hourly=participants_hourly, daily=participants_daily)
+        strands,
+        participants
     )
 end
